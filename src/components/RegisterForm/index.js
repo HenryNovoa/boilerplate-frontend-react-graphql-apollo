@@ -1,23 +1,42 @@
-import React, { Fragment } from 'react'
-import PropTypes from 'prop-types'
+import React, { useState, Fragment } from 'react';
+import { useMutation } from '@apollo/client';
+import PropTypes from 'prop-types';
 
-import { SubmitButton } from '../SubmitButton'
-import { ErrorAlert } from '../ErrorAlert'
+import { ErrorAlert } from '../ErrorAlert';
+import { SubmitButton } from '../SubmitButton';
+import { SubmitButtonHelper } from '../SubmitButtonHelper';
 
-import { useInputValue } from '../../hooks/useInputValue'
-import { validateRegisterForm } from '../../utils/utils'
+import { useInputValue } from '../../hooks/useInputValue';
+import { validateRegisterForm } from '../../utils/validations';
 
+import { REGISTER } from '../../gql/mutations/auth';
 
-export const RegisterForm = ({ error, disabled, onSubmit }) => {
+export const RegisterForm = ({ activateAuth }) => {
 
-	const email = useInputValue('')
-	const password = useInputValue('')
-	const repeatPassword = useInputValue('')
+	const [disabled, setDisabled] = useState(false);
+	const [error, setError] = useState(null);
+
+	const [ registerUser ] = useMutation(REGISTER);
+
+	const email = useInputValue('');
+	const password = useInputValue('');
+	const repeatPassword = useInputValue('');
 
 	const handleSubmit = (event) => {
-		event.preventDefault()
-		onSubmit({ email: email.value, password: password.value })
-	}
+		event.preventDefault();
+		setDisabled(true);
+		setError(null);
+
+		const variables = { email: email.value, password: password.value };
+
+		registerUser({ variables }).then(({ data }) => {
+			const { token } = data.registerUser;
+			activateAuth(token);
+		}).catch(e => {
+			setError(e.message);
+			setDisabled(false);
+		});
+	};
 
 	return (
 		<Fragment>
@@ -27,6 +46,7 @@ export const RegisterForm = ({ error, disabled, onSubmit }) => {
 						<label htmlFor="inputEmailRegisterForm" className="text-light">Email <span className="text-danger">*</span></label>
 						<input
 							disabled={disabled}
+							inputMode="email"
 							className="form-control"
 							id="inputEmailRegisterForm"
 							placeholder='email'
@@ -66,6 +86,7 @@ export const RegisterForm = ({ error, disabled, onSubmit }) => {
 					</div>
 					<div className="mt-2 ml-1">
 						<SubmitButton disabled={disabled || !validateRegisterForm(email.value, password.value, repeatPassword.value)}>Create account</SubmitButton>
+						<SubmitButtonHelper mustShowHelper={!validateRegisterForm(email.value, password.value, repeatPassword.value)}></SubmitButtonHelper>
 					</div>
 				</form>
 				<div className="col-md-8">
@@ -75,11 +96,9 @@ export const RegisterForm = ({ error, disabled, onSubmit }) => {
 				</div>
 			</div>
 		</Fragment>
-	)
-}
+	);
+};
 
 RegisterForm.propTypes = {
-	error: PropTypes.string,
-	disabled: PropTypes.bool.isRequired,
-	onSubmit: PropTypes.func.isRequired,
-}
+	activateAuth: PropTypes.func.isRequired,
+};

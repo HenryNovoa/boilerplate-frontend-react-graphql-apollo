@@ -1,19 +1,19 @@
-import React, { createContext, useState } from 'react'
+import React, { createContext, useState } from 'react';
 
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 
-import { saveSession, recoverSession, deleteSession, storeUserDataOnSessionStorage, recoverUserDataFromSessionStorage, deleteUserDataFromSessionStorage } from './utils/utils'
+import { saveSession, recoverSession, deleteSession, storeUserDataOnSessionStorage, recoverUserDataFromSessionStorage, deleteUserDataFromSessionStorage } from './utils/session';
 
-export const AuthContext = createContext()
+export const AuthContext = createContext();
 
 const Provider = ({ children }) => {
 	const [isAuth, setIsAuth] = useState(() => {
-		return recoverSession('token')
-	})
+		return recoverSession('token');
+	});
 
 	const [userData, setUserData] = useState(() => {
-		return recoverUserDataFromSessionStorage()
-	})
+		return recoverUserDataFromSessionStorage();
+	});
 
 	const value = {
 		isAuth,
@@ -25,25 +25,26 @@ const Provider = ({ children }) => {
 				isAdmin: decodedToken.isAdmin,
 				isActive: decodedToken.isActive,
 				uuid: decodedToken.uuid
-			}
-			storeUserDataOnSessionStorage(userData)
-			setUserData(userData)
-			saveSession('token', token)
-			setIsAuth(true)
+			};
+			storeUserDataOnSessionStorage(userData);
+			setUserData(userData);
+			saveSession('token', token);
+			setIsAuth(true);
 		},
 		removeAuth: () => {
-			setIsAuth(false)
-			setUserData({})
-			deleteUserDataFromSessionStorage()
-			deleteSession()
+			setIsAuth(false);
+			setUserData({});
+			deleteUserDataFromSessionStorage();
+			deleteSession();
 		}
-	}
+	};
 
 	return (
 		<AuthContext.Provider value={value}>
 			{children}
 		</AuthContext.Provider>
-	)
-}
+	);
+};
 
-export default { Provider, Consumer: AuthContext.Consumer }
+// eslint-disable-next-line import/no-anonymous-default-export
+export default { Provider, Consumer: AuthContext.Consumer };

@@ -1,9 +1,22 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React, { useEffect } from 'react';
+import PropTypes from 'prop-types';
 
-import { parseUnixTimestamp } from '../../utils/utils'
+import { parseUnixTimestamp } from '../../utils/utils';
+import { EmojiGreenCheck } from '../EmojiGreenCheck';
+import { EmojiRedCross } from '../EmojiRedCross';
 
-export const ListOfUsers = ( { users } ) => {
+export const ListOfUsers = ( { users, startPolling, stopPolling } ) => {
+
+	useEffect(() => {
+		const minuteInMilliseconds = 60000;
+		const tenMinutes = minuteInMilliseconds * 10;
+		startPolling(tenMinutes);
+
+		return () => {
+		  stopPolling();
+		};
+	}, [startPolling, stopPolling]);
+
 	return (
 		<section className="table-responsive">
 			<table className="table text-light">
@@ -22,19 +35,19 @@ export const ListOfUsers = ( { users } ) => {
 							return (
 								<tr key={user.uuid}>
 									<td>{user.email}</td>
-									<td>{(user.isAdmin) ? '✅': '❌'}</td>
-									<td>{(user.isActive) ? '✅': '❌'}</td>
+									<td>{(user.isAdmin) ? <EmojiGreenCheck /> : <EmojiRedCross /> }</td>
+									<td>{(user.isActive) ? <EmojiGreenCheck /> : <EmojiRedCross /> }</td>
 									<td>{parseUnixTimestamp(user.registrationDate)}</td>
 									<td>{parseUnixTimestamp(user.lastLogin)}</td>
 								</tr>
-							)
+							);
 						})
 					}
 				</tbody>
 			</table>
 		</section>
-	)
-}
+	);
+};
 
 
 ListOfUsers.propTypes = {
@@ -47,5 +60,7 @@ ListOfUsers.propTypes = {
 			registrationDate: PropTypes.string.isRequired,
 			lastLogin: PropTypes.string.isRequired
 		})
-	)
-}
+	),
+	startPolling: PropTypes.func.isRequired,
+	stopPolling: PropTypes.func.isRequired
+};
